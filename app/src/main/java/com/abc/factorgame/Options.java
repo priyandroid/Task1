@@ -7,33 +7,35 @@ import java.util.Vector;
 public class Options {
 
 
-    public int getfactor(int number){
+    public int getfactor(int number) {
 
-         Vector<Integer> vector_factor=new Vector<>();
+        Vector<Integer> vector_factor = new Vector<>();
 
-       for(int i=1;i<=number;i++) {
-           if (number % i == 0)
-               vector_factor.add(i);
+        for (int i = 1; i <= number; i++) {
+            if (number % i == 0)
+                vector_factor.add(i);
 
-       }
+        }
 
-       Collections.shuffle(vector_factor);
+        Collections.shuffle(vector_factor);
 
-      int value=vector_factor.get(0);
+        int value = vector_factor.get(0);
         return value;
     }
 
 
     public int getOption(int number) {
         Vector<Integer> vector = new Vector<>();
-for(int i=1; i<=number; i++) {
-    if (number % i != 0)
-        vector.add(i);
-}
-vector.add(0);
+        vector.add(0);
+        for (int i = 1; i <= number; i++) {
+
+            if (number % i != 0)
+                vector.add(i);
+        }
+
         Collections.shuffle(vector);
-       int value=vector.get(0);
-       return value;
+        int value = vector.get(0);
+        return value;
     }
 
 
