@@ -1,10 +1,10 @@
 package com.abc.factorgame;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
+
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -14,10 +14,10 @@ import android.os.CountDownTimer;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
+import android.view.KeyEvent;
+
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -26,8 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout linearLayout;
     private TextView mTextField;
     CountDownTimer cTimer = null;
+    private boolean mTimerRunning;
 
 
     private void shakeIt() {
@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
     int flag;
     private int answer;
     int v1, v2, v3, number;
+    private long mEndTime;
+    private  long mTimeLeftInMillis=10000;
 
     Options obj = new Options();
 
@@ -88,6 +90,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState != null) {
             flag = savedInstanceState.getInt("flag");
+            mTimerRunning=savedInstanceState.getBoolean("checktimer");
+            if (mTimerRunning) {
+                mEndTime = savedInstanceState.getLong("endTime");
+                mTimeLeftInMillis = mEndTime - System.currentTimeMillis();
+                startTimer();
+            }
+
             if (flag == 1) {
                 v1 = savedInstanceState.getInt("value1");
                 v2 = savedInstanceState.getInt("value2");
@@ -100,19 +109,26 @@ public class MainActivity extends AppCompatActivity {
                 setValues();
             }
         }
+editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+
+        if (actionId == EditorInfo.IME_ACTION_DONE) {
+            onPressedEnter();
+
+        }
+        return false;
+    }
+});
+
+
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                flag = 1;
-                color = ContextCompat.getColor(getApplicationContext(), R.color.white);
-                setActivityBackgroundColor(color);
-                setOptions();
-                startTimer();
-
+                onPressedEnter();
             }
         });
-
         tv1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -195,18 +211,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt("value1", v1);
-        outState.putInt("value2", v2);
-        outState.putInt("value3", v3);
-        outState.putInt("answer", answer);
-        outState.putInt("score", score);
-        outState.putInt("color", color);
-        outState.putInt("flag", flag);
 
-    }
 
     public void setValues() {
 
@@ -250,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
         bundle.putInt("highest_score", gethighScore());
         ExampleDialogFragment exampleDialog = new ExampleDialogFragment();
         exampleDialog.setArguments(bundle);
-        exampleDialog.show(getSupportFragmentManager(), "exampleDialog");
+
+exampleDialog.show(getSupportFragmentManager(), "dialog");
 
     }
 
@@ -275,19 +281,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void startTimer() {
-        cTimer = new CountDownTimer(10000, 1000) {
+        mEndTime = System.currentTimeMillis() + mTimeLeftInMillis;
+        cTimer = new CountDownTimer(mTimeLeftInMillis, 1000) {
+
             public void onTick(long millisUntilFinished) {
-                long sec = millisUntilFinished / 1000;
-                mTextField.setText(String.format("%02d", sec));
+               mTimeLeftInMillis = millisUntilFinished / 1000;
+                mTextField.setText(String.format("%02d", mTimeLeftInMillis));
             }
 
             public void onFinish() {
                 mTextField.setText("10");
+                mTimerRunning=false;
                 openDialog();
             }
 
         };
         cTimer.start();
+        mTimerRunning =true;
 
     }
 
@@ -296,9 +306,35 @@ public class MainActivity extends AppCompatActivity {
     void cancelTimer() {
         if (cTimer != null)
             cTimer.cancel();
+        mTimerRunning=false;
         mTextField.setText("10");
     }
 
+    public void onPressedEnter() {
+        flag = 1;
+        mTimeLeftInMillis=10000;
+        color = ContextCompat.getColor(getApplicationContext(), R.color.white);
+        setActivityBackgroundColor(color);
+        setOptions();
+        startTimer();
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("value1", v1);
+        outState.putInt("value2", v2);
+        outState.putInt("value3", v3);
+        outState.putInt("answer", answer);
+        outState.putInt("score", score);
+        outState.putInt("color", color);
+        outState.putInt("flag", flag);
+        outState.putLong("millisleft", mTimeLeftInMillis);
+        outState.putBoolean("checktimer", mTimerRunning);
+        outState.putLong("endTime", mEndTime);
+
+
+
+    }
 
 }
 
